@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "joplin": {
+      "command": "podman",
+      "args": [
+        "run", "--rm", "-i",
+        "--secret", "joplin_token",
+        "joplin-mcp-server"
+      ]
+    }
+  }
+}
