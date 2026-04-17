@@ -30,5 +30,59 @@ def _get_client() -> httpx.Client:
     return _client
 
 
+# --- Notes ---
+
+@mcp.tool()
+def create_note(title: str, body: str = "", parent_id: str = "") -> dict:
+    """Create a new note in Joplin."""
+    payload = {"title": title, "body": body}
+    if parent_id:
+        payload["parent_id"] = parent_id
+    resp = _get_client().post("/notes", json=payload)
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def get_note(note_id: str) -> dict:
+    """Retrieve a note by ID."""
+    resp = _get_client().get(f"/notes/{note_id}")
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def update_note(note_id: str, title: str = "", body: str = "") -> dict:
+    """Update a note's title and/or body."""
+    payload = {}
+    if title:
+        payload["title"] = title
+    if body:
+        payload["body"] = body
+    resp = _get_client().put(f"/notes/{note_id}", json=payload)
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def delete_note(note_id: str) -> dict:
+    """Delete a note by ID."""
+    resp = _get_client().delete(f"/notes/{note_id}")
+    resp.raise_for_status()
+    return {"success": True}
+
+
+@mcp.tool()
+def list_notes(parent_id: str = "", page: int = 1, limit: int = 100) -> dict:
+    """List notes with optional folder filter and pagination."""
+    params = {"page": page, "limit": limit}
+    if parent_id:
+        resp = _get_client().get(f"/folders/{parent_id}/notes", params=params)
+    else:
+        resp = _get_client().get("/notes", params=params)
+    resp.raise_for_status()
+    return resp.json()
+
+
 if __name__ == "__main__":
     mcp.run()
