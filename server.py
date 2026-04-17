@@ -193,5 +193,18 @@ def untag_note(tag_id: str, note_id: str) -> dict:
     return {"success": True}
 
 
+# --- Search ---
+
+@mcp.tool()
+def search(query: str, type: str = "note", page: int = 1, limit: int = 100) -> dict:
+    """Full-text search across Joplin. type can be: note, folder, tag, resource."""
+    resp = _get_client().get(
+        "/search",
+        params={"query": query, "type": type, "page": page, "limit": limit},
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
 if __name__ == "__main__":
     mcp.run()
