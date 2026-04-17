@@ -7,3 +7,6 @@ venv/
 dist/
 *.egg-info/
 .env
+build/
+.coverage
+htmlcov/
