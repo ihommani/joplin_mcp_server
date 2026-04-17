@@ -132,5 +132,66 @@ def list_folders(page: int = 1, limit: int = 100) -> dict:
     return resp.json()
 
 
+# --- Tags ---
+
+@mcp.tool()
+def create_tag(title: str) -> dict:
+    """Create a new tag in Joplin."""
+    resp = _get_client().post("/tags", json={"title": title})
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def get_tag(tag_id: str) -> dict:
+    """Retrieve a tag by ID."""
+    resp = _get_client().get(f"/tags/{tag_id}")
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def update_tag(tag_id: str, title: str = "") -> dict:
+    """Rename a tag."""
+    payload = {}
+    if title:
+        payload["title"] = title
+    resp = _get_client().put(f"/tags/{tag_id}", json=payload)
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def delete_tag(tag_id: str) -> dict:
+    """Delete a tag by ID."""
+    resp = _get_client().delete(f"/tags/{tag_id}")
+    resp.raise_for_status()
+    return {"success": True}
+
+
+@mcp.tool()
+def list_tags(page: int = 1, limit: int = 100) -> dict:
+    """List all tags."""
+    resp = _get_client().get("/tags", params={"page": page, "limit": limit})
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def tag_note(tag_id: str, note_id: str) -> dict:
+    """Attach a tag to a note."""
+    resp = _get_client().post(f"/tags/{tag_id}/notes", json={"id": note_id})
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def untag_note(tag_id: str, note_id: str) -> dict:
+    """Remove a tag from a note."""
+    resp = _get_client().delete(f"/tags/{tag_id}/notes/{note_id}")
+    resp.raise_for_status()
+    return {"success": True}
+
+
 if __name__ == "__main__":
     mcp.run()
