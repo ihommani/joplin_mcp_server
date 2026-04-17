@@ -84,5 +84,53 @@ def list_notes(parent_id: str = "", page: int = 1, limit: int = 100) -> dict:
     return resp.json()
 
 
+# --- Folders ---
+
+@mcp.tool()
+def create_folder(title: str, parent_id: str = "") -> dict:
+    """Create a new folder (notebook) in Joplin."""
+    payload = {"title": title}
+    if parent_id:
+        payload["parent_id"] = parent_id
+    resp = _get_client().post("/folders", json=payload)
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def get_folder(folder_id: str) -> dict:
+    """Retrieve a folder by ID."""
+    resp = _get_client().get(f"/folders/{folder_id}")
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def update_folder(folder_id: str, title: str = "") -> dict:
+    """Rename a folder."""
+    payload = {}
+    if title:
+        payload["title"] = title
+    resp = _get_client().put(f"/folders/{folder_id}", json=payload)
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def delete_folder(folder_id: str) -> dict:
+    """Delete a folder by ID."""
+    resp = _get_client().delete(f"/folders/{folder_id}")
+    resp.raise_for_status()
+    return {"success": True}
+
+
+@mcp.tool()
+def list_folders(page: int = 1, limit: int = 100) -> dict:
+    """List all folders."""
+    resp = _get_client().get("/folders", params={"page": page, "limit": limit})
+    resp.raise_for_status()
+    return resp.json()
+
+
 if __name__ == "__main__":
     mcp.run()
