@@ -101,6 +101,17 @@ def test_list_notes_with_parent_calls_folder_notes_endpoint():
         assert route.called
 
 
+def test_list_notes_sends_pagination_params():
+    with respx.mock(base_url=BASE) as mock:
+        route = mock.get("/notes").mock(
+            return_value=httpx.Response(200, json={"items": [], "has_more": False})
+        )
+        server.list_notes(page=2, limit=50)
+        url = str(route.calls[0].request.url)
+        assert "page=2" in url
+        assert "limit=50" in url
+
+
 def test_note_api_error_raises():
     with respx.mock(base_url=BASE) as mock:
         mock.get("/notes/bad-id").mock(
