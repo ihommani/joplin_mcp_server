@@ -206,5 +206,23 @@ def search(query: str, type: str = "note", page: int = 1, limit: int = 100) -> d
     return resp.json()
 
 
+# --- Resources ---
+
+@mcp.tool()
+def list_resources(page: int = 1, limit: int = 100) -> dict:
+    """List all resources (attachments)."""
+    resp = _get_client().get("/resources", params={"page": page, "limit": limit})
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def get_resource(resource_id: str) -> dict:
+    """Retrieve resource metadata by ID."""
+    resp = _get_client().get(f"/resources/{resource_id}")
+    resp.raise_for_status()
+    return resp.json()
+
+
 if __name__ == "__main__":
     mcp.run()
