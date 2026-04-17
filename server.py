@@ -53,7 +53,7 @@ def get_note(note_id: str) -> dict:
 
 @mcp.tool()
 def update_note(note_id: str, title: str = "", body: str = "") -> dict:
-    """Update a note's title and/or body."""
+    """Update a note's title and/or body. Empty string fields are ignored (cannot clear a field)."""
     payload = {}
     if title:
         payload["title"] = title
@@ -107,7 +107,7 @@ def get_folder(folder_id: str) -> dict:
 
 @mcp.tool()
 def update_folder(folder_id: str, title: str = "") -> dict:
-    """Rename a folder."""
+    """Rename a folder. Empty string title is ignored (cannot clear the title)."""
     payload = {}
     if title:
         payload["title"] = title
@@ -152,7 +152,7 @@ def get_tag(tag_id: str) -> dict:
 
 @mcp.tool()
 def update_tag(tag_id: str, title: str = "") -> dict:
-    """Rename a tag."""
+    """Rename a tag. Empty string title is ignored (cannot clear the title)."""
     payload = {}
     if title:
         payload["title"] = title

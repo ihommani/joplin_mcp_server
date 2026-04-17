@@ -101,6 +101,15 @@ def test_untag_note_calls_correct_endpoint():
         assert result == {"success": True}
 
 
+def test_tag_note_api_error_raises():
+    with respx.mock(base_url=BASE) as mock:
+        mock.post("/tags/tag-1/notes").mock(
+            return_value=httpx.Response(404, json={"error": "Tag not found"})
+        )
+        with pytest.raises(httpx.HTTPStatusError):
+            server.tag_note(tag_id="tag-1", note_id="note-1")
+
+
 def test_tag_api_error_raises():
     with respx.mock(base_url=BASE) as mock:
         mock.get("/tags/bad-id").mock(
