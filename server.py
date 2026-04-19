@@ -5,7 +5,7 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("joplin")
 
-_BASE_URL = "http://host.containers.internal:41184"
+_BASE_URL = os.getenv("JOPLIN_BASE_URL", "http://localhost:41184")
 _client: httpx.Client | None = None
 
 

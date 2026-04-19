@@ -4,6 +4,7 @@
       "command": "podman",
       "args": [
         "run", "--rm", "-i",
+        "--network", "host",
         "--secret", "joplin_token",
         "joplin-mcp-server"
       ]
