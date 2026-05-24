@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-One-time migration: read the yyyy-mm-dd date tag on each note in the docker
-notebook, write that date into user_created_time, then remove the tag.
+Migration: read the yyyy-mm-dd date tag on each note in a given notebook,
+write that date into user_created_time, then remove the tag.
 
-Usage (inside the MCP container, which can reach Joplin via host.containers.internal):
+Usage (inside the MCP container):
     podman run --rm --network host \\
         --secret joplin_token \\
-        -v $(pwd)/tests:/app/tests:ro \\
-        -e JOPLIN_BASE_URL=http://host.containers.internal:41184 \\
+        -v $(pwd)/tests:/app/tests:ro,z \\
         --entrypoint python joplin-mcp-server \\
-        /app/tests/migrate_docker_dates.py [--dry-run]
+        /app/tests/migrate_docker_dates.py --folder-id <id> [--dry-run]
 
 Or on the host if Joplin is reachable at localhost:41184:
-    JOPLIN_TOKEN=<your-token> python tests/migrate_docker_dates.py [--dry-run]
+    JOPLIN_TOKEN=<your-token> python tests/migrate_docker_dates.py --folder-id <id> [--dry-run]
 
 Safe to re-run: notes whose date tag is already gone are skipped.
 """
+import argparse
 import os
 import re
 import sys
@@ -23,10 +23,15 @@ from datetime import datetime, timezone
 
 import httpx
 
-DOCKER_FOLDER_ID = "19f09ae9a5e44a3caefd77faa579a1c7"
 BASE_URL = os.getenv("JOPLIN_BASE_URL", "http://localhost:41184")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-DRY_RUN = "--dry-run" in sys.argv
+
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser()
+    p.add_argument("--folder-id", required=True, help="Joplin folder ID to migrate")
+    p.add_argument("--dry-run", action="store_true")
+    return p.parse_args()
 
 
 def client() -> httpx.Client:
@@ -61,13 +66,17 @@ def list_all(c: httpx.Client, path: str, **params) -> list:
 
 
 def main() -> None:
-    if DRY_RUN:
+    args = parse_args()
+    folder_id = args.folder_id
+    dry_run = args.dry_run
+
+    if dry_run:
         print("=== DRY RUN — no changes will be made ===\n")
 
     c = client()
 
-    notes = list_all(c, f"/folders/{DOCKER_FOLDER_ID}/notes")
-    print(f"Found {len(notes)} notes in docker folder\n")
+    notes = list_all(c, f"/folders/{folder_id}/notes")
+    print(f"Found {len(notes)} notes in folder {folder_id}\n")
 
     processed_tags: set[str] = set()
     skipped = updated = 0
@@ -88,17 +97,17 @@ def main() -> None:
 
         tag = date_tags[0]
         ts = date_to_ms(tag["title"])
-        print(f"  {'DRY' if DRY_RUN else 'SET'}  {note['title'][:60]}")
+        print(f"  {'DRY' if dry_run else 'SET'}  {note['title'][:60]}")
         print(f"         {tag['title']} → user_created_time={ts}")
 
-        if not DRY_RUN:
+        if not dry_run:
             c.put(f"/notes/{note_id}", json={"user_created_time": ts}).raise_for_status()
             c.delete(f"/tags/{tag['id']}/notes/{note_id}").raise_for_status()
 
         processed_tags.add(tag["id"])
         updated += 1
 
-    print(f"\n{'Would update' if DRY_RUN else 'Updated'}: {updated}  skipped: {skipped}")
+    print(f"\n{'Would update' if dry_run else 'Updated'}: {updated}  skipped: {skipped}")
 
     # Delete tags that are now empty
     print(f"\nCleaning up {len(processed_tags)} date tag(s)...")
@@ -108,12 +117,12 @@ def main() -> None:
         if remaining:
             print(f"  SKIP delete tag {tag_id} — still has {len(remaining)} note(s)")
             continue
-        print(f"  {'DRY DELETE' if DRY_RUN else 'DELETE'} tag {tag_id}")
-        if not DRY_RUN:
+        print(f"  {'DRY DELETE' if dry_run else 'DELETE'} tag {tag_id}")
+        if not dry_run:
             c.delete(f"/tags/{tag_id}").raise_for_status()
         deleted_tags += 1
 
-    print(f"\n{'Would delete' if DRY_RUN else 'Deleted'} {deleted_tags} tag(s)")
+    print(f"\n{'Would delete' if dry_run else 'Deleted'} {deleted_tags} tag(s)")
     print("\nDone.")
 
 
