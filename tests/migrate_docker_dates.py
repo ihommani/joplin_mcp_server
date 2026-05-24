@@ -3,10 +3,17 @@
 One-time migration: read the yyyy-mm-dd date tag on each note in the docker
 notebook, write that date into user_created_time, then remove the tag.
 
-Usage:
+Usage (inside the MCP container, which can reach Joplin via host.containers.internal):
+    podman run --rm --network host \\
+        --secret joplin_token \\
+        -v $(pwd)/tests:/app/tests:ro \\
+        -e JOPLIN_BASE_URL=http://host.containers.internal:41184 \\
+        --entrypoint python joplin-mcp-server \\
+        /app/tests/migrate_docker_dates.py [--dry-run]
+
+Or on the host if Joplin is reachable at localhost:41184:
     JOPLIN_TOKEN=<your-token> python tests/migrate_docker_dates.py [--dry-run]
 
-Requires Joplin running at localhost:41184.
 Safe to re-run: notes whose date tag is already gone are skipped.
 """
 import os
@@ -23,9 +30,14 @@ DRY_RUN = "--dry-run" in sys.argv
 
 
 def client() -> httpx.Client:
-    token = os.getenv("JOPLIN_TOKEN", "").strip()
+    secret_path = "/run/secrets/joplin_token"
+    if os.path.exists(secret_path):
+        with open(secret_path) as f:
+            token = f.read().strip()
+    else:
+        token = os.getenv("JOPLIN_TOKEN", "").strip()
     if not token:
-        print("ERROR: JOPLIN_TOKEN env var is required")
+        print("ERROR: JOPLIN_TOKEN env var or Podman secret required")
         sys.exit(1)
     return httpx.Client(base_url=BASE_URL, params={"token": token})
 
