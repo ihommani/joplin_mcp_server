@@ -52,13 +52,19 @@ def get_note(note_id: str) -> dict:
 
 
 @mcp.tool()
-def update_note(note_id: str, title: str = "", body: str = "") -> dict:
-    """Update a note's title and/or body. Empty string fields are ignored (cannot clear a field)."""
+def update_note(note_id: str, title: str = "", body: str = "", user_created_time: int = 0) -> dict:
+    """Update a note's title, body, and/or creation timestamp.
+
+    Empty string fields are ignored (cannot clear a field).
+    user_created_time is a Unix timestamp in milliseconds (0 = not set).
+    """
     payload = {}
     if title:
         payload["title"] = title
     if body:
         payload["body"] = body
+    if user_created_time:
+        payload["user_created_time"] = user_created_time
     resp = _get_client().put(f"/notes/{note_id}", json=payload)
     resp.raise_for_status()
     return resp.json()
@@ -181,6 +187,14 @@ def list_tags(page: int = 1, limit: int = 100) -> dict:
 def tag_note(tag_id: str, note_id: str) -> dict:
     """Attach a tag to a note."""
     resp = _get_client().post(f"/tags/{tag_id}/notes", json={"id": note_id})
+    resp.raise_for_status()
+    return resp.json()
+
+
+@mcp.tool()
+def get_tag_notes(tag_id: str, page: int = 1, limit: int = 100) -> dict:
+    """List notes that have a given tag."""
+    resp = _get_client().get(f"/tags/{tag_id}/notes", params={"page": page, "limit": limit})
     resp.raise_for_status()
     return resp.json()
 

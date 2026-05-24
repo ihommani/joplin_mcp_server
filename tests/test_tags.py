@@ -5,7 +5,7 @@ import respx
 
 import server
 
-BASE = "http://host.containers.internal:41184"
+BASE = "http://localhost:41184"
 
 
 def test_create_tag_sends_title():
@@ -117,3 +117,46 @@ def test_tag_api_error_raises():
         )
         with pytest.raises(httpx.HTTPStatusError):
             server.get_tag(tag_id="bad-id")
+
+
+def test_get_tag_notes_calls_correct_endpoint():
+    with respx.mock(base_url=BASE) as mock:
+        route = mock.get("/tags/tag-1/notes").mock(
+            return_value=httpx.Response(200, json={"items": [], "has_more": False})
+        )
+        result = server.get_tag_notes(tag_id="tag-1")
+        assert route.called
+        assert result == {"items": [], "has_more": False}
+
+
+def test_get_tag_notes_returns_notes():
+    with respx.mock(base_url=BASE) as mock:
+        mock.get("/tags/tag-1/notes").mock(
+            return_value=httpx.Response(
+                200,
+                json={"items": [{"id": "note-1", "title": "My Note"}], "has_more": False},
+            )
+        )
+        result = server.get_tag_notes(tag_id="tag-1")
+        assert len(result["items"]) == 1
+        assert result["items"][0]["id"] == "note-1"
+
+
+def test_get_tag_notes_sends_pagination_params():
+    with respx.mock(base_url=BASE) as mock:
+        route = mock.get("/tags/tag-1/notes").mock(
+            return_value=httpx.Response(200, json={"items": [], "has_more": False})
+        )
+        server.get_tag_notes(tag_id="tag-1", page=2, limit=50)
+        url = str(route.calls[0].request.url)
+        assert "page=2" in url
+        assert "limit=50" in url
+
+
+def test_get_tag_notes_api_error_raises():
+    with respx.mock(base_url=BASE) as mock:
+        mock.get("/tags/bad-id/notes").mock(
+            return_value=httpx.Response(404, json={"error": "Tag not found"})
+        )
+        with pytest.raises(httpx.HTTPStatusError):
+            server.get_tag_notes(tag_id="bad-id")

@@ -4,7 +4,7 @@ import respx
 
 import server
 
-BASE = "http://host.containers.internal:41184"
+BASE = "http://localhost:41184"
 
 
 def test_search_sends_query():

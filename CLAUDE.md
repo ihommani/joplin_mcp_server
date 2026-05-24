@@ -68,7 +68,7 @@ tests/
 - Verify: request method/path, request body, response parsing, and error surfacing
 - `conftest.py` resets `server._client = None` before and after each test (autouse)
 - `conftest.py` sets `JOPLIN_TOKEN=test-token` via monkeypatch (autouse); it does **not** set `JOPLIN_BASE_URL`, so `server._BASE_URL` defaults to `http://localhost:41184` during tests
-- Each test file defines its own `BASE = "http://host.containers.internal:41184"` constant used exclusively for `respx.mock(base_url=BASE)` route registration — this is the respx routing prefix, not the server's runtime base URL
+- Each test file defines its own `BASE = "http://localhost:41184"` constant that matches the server's default `_BASE_URL` — both must stay in sync
 - Override the server's base URL in tests via `JOPLIN_BASE_URL` env var if needed
 
 Run tests:

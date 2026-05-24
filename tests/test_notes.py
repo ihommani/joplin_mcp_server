@@ -5,7 +5,7 @@ import respx
 
 import server
 
-BASE = "http://host.containers.internal:41184"
+BASE = "http://localhost:41184"
 
 
 def test_create_note_sends_title_and_body():
@@ -110,6 +110,26 @@ def test_list_notes_sends_pagination_params():
         url = str(route.calls[0].request.url)
         assert "page=2" in url
         assert "limit=50" in url
+
+
+def test_update_note_sends_user_created_time_when_provided():
+    with respx.mock(base_url=BASE) as mock:
+        route = mock.put("/notes/note-1").mock(
+            return_value=httpx.Response(200, json={"id": "note-1"})
+        )
+        server.update_note(note_id="note-1", user_created_time=1714262400000)
+        body = json.loads(route.calls[0].request.content)
+        assert body["user_created_time"] == 1714262400000
+
+
+def test_update_note_omits_user_created_time_when_zero():
+    with respx.mock(base_url=BASE) as mock:
+        route = mock.put("/notes/note-1").mock(
+            return_value=httpx.Response(200, json={"id": "note-1"})
+        )
+        server.update_note(note_id="note-1")
+        body = json.loads(route.calls[0].request.content)
+        assert "user_created_time" not in body
 
 
 def test_note_api_error_raises():
