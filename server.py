@@ -46,7 +46,7 @@ def create_note(title: str, body: str = "", parent_id: str = "") -> dict:
 @mcp.tool()
 def get_note(note_id: str) -> dict:
     """Retrieve a note by ID."""
-    resp = _get_client().get(f"/notes/{note_id}")
+    resp = _get_client().get(f"/notes/{note_id}", params={"fields": "id,parent_id,title,body,deleted_time"})
     resp.raise_for_status()
     return resp.json()
 

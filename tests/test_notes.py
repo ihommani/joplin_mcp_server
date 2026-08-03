@@ -51,6 +51,18 @@ def test_get_note_calls_correct_endpoint():
         assert result["id"] == "note-1"
 
 
+def test_get_note_requests_body_field():
+    with respx.mock(base_url=BASE) as mock:
+        route = mock.get("/notes/note-1").mock(
+            return_value=httpx.Response(200, json={"id": "note-1", "title": "My Note", "body": "Note content"})
+        )
+        result = server.get_note(note_id="note-1")
+        url = str(route.calls[0].request.url)
+        assert "fields=" in url
+        assert "body" in url
+        assert result["body"] == "Note content"
+
+
 def test_update_note_sends_provided_fields():
     with respx.mock(base_url=BASE) as mock:
         route = mock.put("/notes/note-1").mock(
