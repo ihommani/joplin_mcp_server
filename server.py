@@ -240,5 +240,22 @@ def get_resource(resource_id: str) -> dict:
     return resp.json()
 
 
+def _transport_config() -> tuple[str, dict]:
+    """Select the MCP transport from the environment. stdio (default) is used
+    by Claude Code and the local Hermes install; http is used only on the VM,
+    where the server runs as a persistent Quadlet sibling instead of being
+    spawned per session."""
+    transport = os.getenv("MCP_TRANSPORT", "stdio")
+    if transport not in ("stdio", "http"):
+        raise RuntimeError(
+            f"Unknown MCP_TRANSPORT: {transport!r} (expected 'stdio' or 'http')"
+        )
+    if transport == "stdio":
+        return "stdio", {}
+    port = int(os.getenv("MCP_HTTP_PORT", "8080"))
+    return "streamable-http", {"host": "127.0.0.1", "port": port}
+
+
 if __name__ == "__main__":
-    mcp.run()
+    _transport, _kwargs = _transport_config()
+    mcp.run(transport=_transport, **_kwargs)
