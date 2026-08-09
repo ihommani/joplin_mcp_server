@@ -30,7 +30,7 @@ A FastMCP server that exposes the Joplin REST API as MCP tools, packaged as a Po
 One MCP client, sequential requests. An async event loop adds no value here and complicates the code.
 
 ### Token via Podman secret, not env var
-`/run/secrets/joplin_token` is the production path. `JOPLIN_TOKEN` env var is a fallback for tests only. The token is injected as a query param on every request because the Joplin API supports no other auth mechanism.
+`/run/secrets/joplin_token` is the production path. `JOPLIN_API_TOKEN` env var is a fallback for tests only. The token is injected as a query param on every request because the Joplin API supports no other auth mechanism.
 
 ### Empty string as "not provided" sentinel
 `update_note`, `update_folder`, `update_tag` use `title=""` etc. as defaults. Empty strings are skipped — the field is not sent. This means you **cannot clear a field** by passing `""`. This is a known limitation, documented in each tool's docstring.
@@ -49,7 +49,7 @@ pyproject.toml       ← project + dependency declarations (uv)
 uv.lock              ← locked dependency tree (runtime + dev)
 .mcp.json            ← Claude Code MCP server config (project-level)
 tests/
-  conftest.py        ← autouse fixtures: reset _client, set JOPLIN_TOKEN
+  conftest.py        ← autouse fixtures: reset _client, set JOPLIN_API_TOKEN
   test_notes.py
   test_folders.py
   test_tags.py
@@ -67,7 +67,7 @@ tests/
 - `respx.mock(base_url=BASE)` intercepts `httpx` at the transport level
 - Verify: request method/path, request body, response parsing, and error surfacing
 - `conftest.py` resets `server._client = None` before and after each test (autouse)
-- `conftest.py` sets `JOPLIN_TOKEN=test-token` via monkeypatch (autouse); it does **not** set `JOPLIN_BASE_URL`, so `server._BASE_URL` defaults to `http://localhost:41184` during tests
+- `conftest.py` sets `JOPLIN_API_TOKEN=test-token` via monkeypatch (autouse); it does **not** set `JOPLIN_BASE_URL`, so `server._BASE_URL` defaults to `http://localhost:41184` during tests
 - Each test file defines its own `BASE = "http://localhost:41184"` constant that matches the server's default `_BASE_URL` — both must stay in sync
 - Override the server's base URL in tests via `JOPLIN_BASE_URL` env var if needed
 
@@ -79,7 +79,7 @@ uv run pytest
 
 Integration test (requires live Joplin):
 ```bash
-JOPLIN_TOKEN=<token> python tests/integration.py
+JOPLIN_API_TOKEN=<token> python tests/integration.py
 ```
 
 ---

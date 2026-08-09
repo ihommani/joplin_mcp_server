@@ -3,7 +3,7 @@
 Manual integration test — requires Joplin running at localhost:41184.
 
 Usage:
-    JOPLIN_TOKEN=<your-token> python tests/integration.py
+    JOPLIN_API_TOKEN=<your-token> python tests/integration.py
 
 This is NOT run in CI. Run it manually to verify end-to-end connectivity.
 """
@@ -15,9 +15,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import server
 
-token = os.getenv("JOPLIN_TOKEN")
+token = os.getenv("JOPLIN_API_TOKEN")
 if not token:
-    print("ERROR: JOPLIN_TOKEN env var is required")
+    print("ERROR: JOPLIN_API_TOKEN env var is required")
     sys.exit(1)
 
 print("=== Joplin MCP Server Integration Test ===\n")

@@ -63,14 +63,14 @@ uv sync
 uv run pytest
 ```
 
-All 40 tests run without a live Joplin instance. They mock the HTTP layer with `respx`.
+All 47 tests run without a live Joplin instance. They mock the HTTP layer with `respx`.
 
 ### How to run the integration test against a live Joplin instance
 
 Requires Joplin running locally with the Web Clipper enabled.
 
 ```bash
-JOPLIN_TOKEN=<your-token> python tests/integration.py
+JOPLIN_API_TOKEN=<your-token> python tests/integration.py
 ```
 
 The script creates a folder, a note, tags it, searches for it, then cleans up. Inspect its output to confirm end-to-end connectivity.
@@ -179,12 +179,12 @@ Resource upload is not supported. The container has no access to host filesystem
 | Variable | Default | Description |
 |---|---|---|
 | `JOPLIN_BASE_URL` | `http://localhost:41184` | Joplin API base URL. Inside the container, the host is reachable at `http://host.containers.internal:41184` |
-| `JOPLIN_TOKEN` | _(none)_ | Fallback token source when the Podman secret is not available. Intended for local development and testing only |
+| `JOPLIN_API_TOKEN` | _(none)_ | Fallback token source when the Podman secret is not available. Intended for local development and testing only |
 
 ### Token resolution order
 
 1. `/run/secrets/joplin_token` (Podman secret — preferred in production)
-2. `JOPLIN_TOKEN` environment variable (fallback for local dev and tests)
+2. `JOPLIN_API_TOKEN` environment variable (fallback for local dev and tests)
 
 If neither is present, the server raises `RuntimeError` at startup.
 

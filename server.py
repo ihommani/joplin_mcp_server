@@ -13,9 +13,11 @@ def _load_token() -> str:
     secret_path = Path("/run/secrets/joplin_token")
     if secret_path.exists():
         return secret_path.read_text().strip()
-    token = os.getenv("JOPLIN_TOKEN", "").strip()
+    token = os.getenv("JOPLIN_API_TOKEN", "").strip()
     if not token:
-        raise RuntimeError("Joplin API token not found in secret or JOPLIN_TOKEN env var")
+        raise RuntimeError(
+            "Joplin API token not found in secret or JOPLIN_API_TOKEN env var"
+        )
     return token
 
 

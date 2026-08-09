@@ -11,7 +11,7 @@ Usage (inside the MCP container):
         /app/tests/migrate_docker_dates.py --folder-id <id> [--dry-run]
 
 Or on the host if Joplin is reachable at localhost:41184:
-    JOPLIN_TOKEN=<your-token> python tests/migrate_docker_dates.py --folder-id <id> [--dry-run]
+    JOPLIN_API_TOKEN=<your-token> python tests/migrate_docker_dates.py --folder-id <id> [--dry-run]
 
 Safe to re-run: notes whose date tag is already gone are skipped.
 """
@@ -40,9 +40,9 @@ def client() -> httpx.Client:
         with open(secret_path) as f:
             token = f.read().strip()
     else:
-        token = os.getenv("JOPLIN_TOKEN", "").strip()
+        token = os.getenv("JOPLIN_API_TOKEN", "").strip()
     if not token:
-        print("ERROR: JOPLIN_TOKEN env var or Podman secret required")
+        print("ERROR: JOPLIN_API_TOKEN env var or Podman secret required")
         sys.exit(1)
     return httpx.Client(base_url=BASE_URL, params={"token": token})
 
