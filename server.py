@@ -240,6 +240,27 @@ def get_resource(resource_id: str) -> dict:
     return resp.json()
 
 
+# --- Sync ---
+
+@mcp.tool()
+def sync() -> str:
+    """Trigger a Joplin sync. Only available when this deployment exposes a
+    sync-trigger endpoint (the VM's joplin-mcp-server does; a local install,
+    where the Joplin desktop app already manages its own sync, does not)."""
+    url = os.getenv("JOPLIN_SYNC_TRIGGER_URL", "").strip()
+    if not url:
+        raise RuntimeError(
+            "Joplin sync is not available in this deployment — this Joplin "
+            "instance manages its own sync (e.g. the desktop app), and "
+            "JOPLIN_SYNC_TRIGGER_URL is not set."
+        )
+    resp = httpx.post(url, timeout=600.0)
+    if resp.status_code == 409:
+        return "sync already in progress"
+    resp.raise_for_status()
+    return resp.text
+
+
 def _transport_config() -> tuple[str, dict]:
     """Select the MCP transport from the environment. stdio (default) is used
     by Claude Code and the local Hermes install; http is used only on the VM,

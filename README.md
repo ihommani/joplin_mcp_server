@@ -63,7 +63,7 @@ uv sync
 uv run pytest
 ```
 
-All 47 tests run without a live Joplin instance. They mock the HTTP layer with `respx`.
+All 56 tests run without a live Joplin instance. They mock the HTTP layer with `respx`.
 
 ### How to run the integration test against a live Joplin instance
 
