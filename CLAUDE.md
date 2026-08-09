@@ -7,18 +7,19 @@ A FastMCP server that exposes the Joplin REST API as MCP tools, packaged as a Po
 ## Architecture
 
 ```
-[Claude Code]
-     │  spawns per session via `podman run`
-     ▼
+[Claude Code]                    [deployment that can't spawn per call]
+     │  spawns per session            │  MCP_TRANSPORT=http
+     │  via `podman run`               ▼
+     ▼                            [joplin-mcp-server container]  ←→ streamable-http (`/mcp`)
 [joplin-mcp-server container]   ←→ stdio (MCP / JSON-RPC)
-     │
-     │  HTTP + token query param
-     ▼
-[Joplin API @ host.containers.internal:41184]
+     │                                 │
+     │  HTTP + token query param       │  HTTP + token query param
+     ▼                                 ▼
+        [Joplin API @ host.containers.internal:41184]
 ```
 
 - One file does everything: `server.py`. Do not split it without a strong reason.
-- Transport is stdio, not HTTP. Claude Code spawns the container and communicates over stdin/stdout.
+- Transport is stdio by default — Claude Code spawns the container and communicates over stdin/stdout. Setting `MCP_TRANSPORT=http` (with `MCP_HTTP_PORT`) instead starts a persistent `streamable-http` listener on `/mcp`, for deployments that cannot spawn a container per call.
 - The container exits when the session ends (`--rm`).
 - `host.containers.internal` is Podman's DNS name for the host machine inside a container.
 
