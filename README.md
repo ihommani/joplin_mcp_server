@@ -59,8 +59,8 @@ Claude Code will invoke the `list_folders` tool and return your notebooks. If yo
 ### How to run the unit tests
 
 ```bash
-pip install -r requirements-dev.txt
-pytest
+uv sync
+uv run pytest
 ```
 
 All 40 tests run without a live Joplin instance. They mock the HTTP layer with `respx`.
@@ -198,8 +198,8 @@ If neither is present, the server raises `RuntimeError` at startup.
 .
 ├── server.py            # FastMCP server — all 17 MCP tools
 ├── Containerfile        # Podman image definition (python:3.13-alpine)
-├── requirements.txt     # Runtime dependencies
-├── requirements-dev.txt # Dev/test dependencies
+├── pyproject.toml       # Project + dependency declarations (uv)
+├── uv.lock              # Locked dependency tree (runtime + dev)
 ├── .mcp.json            # Claude Code MCP server configuration
 └── tests/
     ├── conftest.py      # Shared pytest fixtures

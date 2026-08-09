@@ -1,9 +1,9 @@
 import os
 import httpx
 from pathlib import Path
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
-mcp = FastMCP("joplin")
+mcp = MCPServer("joplin")
 
 _BASE_URL = os.getenv("JOPLIN_BASE_URL", "http://localhost:41184")
 _client: httpx.Client | None = None

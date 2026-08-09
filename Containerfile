@@ -1,14 +1,21 @@
 FROM python:3.13-alpine
 
-RUN adduser -D appuser
+# The distroless uv image ships a statically-linked musl binary, so it runs
+# on Alpine unchanged — verified, not assumed. Pinned: an unpinned build
+# tool would undo the reproducibility uv.lock is here to provide.
+COPY --from=ghcr.io/astral-sh/uv:0.12.0 /uv /uvx /bin/
 
+RUN adduser -D appuser
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev
 
 COPY server.py .
 
 USER appuser
-
-ENTRYPOINT ["python", "server.py"]
+ENTRYPOINT ["/app/.venv/bin/python", "server.py"]

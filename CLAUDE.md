@@ -45,8 +45,8 @@ One MCP client, sequential requests. An async event loop adds no value here and 
 ```
 server.py            ← the entire server (do not split)
 Containerfile        ← Podman image definition
-requirements.txt     ← runtime: mcp[cli], httpx
-requirements-dev.txt ← test: pytest, respx
+pyproject.toml       ← project + dependency declarations (uv)
+uv.lock              ← locked dependency tree (runtime + dev)
 .mcp.json            ← Claude Code MCP server config (project-level)
 tests/
   conftest.py        ← autouse fixtures: reset _client, set JOPLIN_TOKEN
@@ -73,8 +73,8 @@ tests/
 
 Run tests:
 ```bash
-pip install -r requirements-dev.txt
-pytest
+uv sync
+uv run pytest
 ```
 
 Integration test (requires live Joplin):
